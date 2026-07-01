@@ -1,0 +1,10 @@
+__pycache__/
+*.pyc
+build/
+dist/
+*.egg-info/
+morphonas_playbook/_demo_out/
+.ipynb_checkpoints/
+# notebook runtime outputs (gifs/pngs are generated in the working dir when cells run)
+*.gif
+*.png
