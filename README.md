@@ -15,12 +15,17 @@ version-frozen — nothing to clone, nothing to drift.
 ### SIFR-2026 — "The Genomic Bottleneck"
 
 3rd Summer School on Research Frontiers in Intelligent Systems (UCU, Lviv, 2026).
-Notebook: [`notebooks/sifr-2026-genomic-bottleneck.ipynb`](notebooks/sifr-2026-genomic-bottleneck.ipynb) —
-open it in Google Colab (CPU runtime is fine; no GPU needed).
+CPU runtime is fine; no GPU needed. Open either notebook in Colab:
 
-To go past parameters and **edit the source (incl. the engine) as files in Colab**,
-use [`notebooks/edit-the-source.ipynb`](notebooks/edit-the-source.ipynb) — it clones
-the repo and `pip install -e`'s it so every `.py` is editable with live reload.
+- **Hands-on** — [`notebooks/sifr-2026-genomic-bottleneck.ipynb`](notebooks/sifr-2026-genomic-bottleneck.ipynb)
+  [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/ukma-morphonas-lab/MorphoNAS-playbook/blob/main/notebooks/sifr-2026-genomic-bottleneck.ipynb)
+  <br>direct link: `https://colab.research.google.com/github/ukma-morphonas-lab/MorphoNAS-playbook/blob/main/notebooks/sifr-2026-genomic-bottleneck.ipynb`
+- **Edit the source (Tier 3)** — [`notebooks/edit-the-source.ipynb`](notebooks/edit-the-source.ipynb)
+  [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/ukma-morphonas-lab/MorphoNAS-playbook/blob/main/notebooks/edit-the-source.ipynb)
+  <br>direct link: `https://colab.research.google.com/github/ukma-morphonas-lab/MorphoNAS-playbook/blob/main/notebooks/edit-the-source.ipynb`
+
+The hands-on notebook is params-only; `edit-the-source` clones + `pip install -e`'s the
+repo so every `.py` (including the engine) is editable with live reload.
 
 You will:
 
