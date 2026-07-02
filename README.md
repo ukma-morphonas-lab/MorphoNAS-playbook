@@ -18,6 +18,10 @@ version-frozen — nothing to clone, nothing to drift.
 Notebook: [`notebooks/sifr-2026-genomic-bottleneck.ipynb`](notebooks/sifr-2026-genomic-bottleneck.ipynb) —
 open it in Google Colab (CPU runtime is fine; no GPU needed).
 
+To go past parameters and **edit the source (incl. the engine) as files in Colab**,
+use [`notebooks/edit-the-source.ipynb`](notebooks/edit-the-source.ipynb) — it clones
+the repo and `pip install -e`'s it so every `.py` is editable with live reload.
+
 You will:
 
 1. **Grow** a neural network from a compact genome and watch the morphogen field
