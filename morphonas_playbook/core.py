@@ -20,6 +20,32 @@ INPUT_DIM = 4      # CartPole observations
 OUTPUT_DIM = 2     # CartPole actions (argmax)
 NUM_ROLLOUTS = 20  # fixed averaging, matches the ExpB config
 
+# Discrete-action Gym tasks the hands-on supports out of the box. input/output
+# dims match each env's observation/action spaces; `solved` is the mean-reward bar
+# used only for run_ga's telemetry (higher is better for all of these). The engine
+# (GymFitnessFunction) infers dims itself, so any Gym env in its PASSING_SCORES
+# works too — these presets just save a gym.make() lookup and set a sensible bar.
+TASKS = {
+    "CartPole-v1":    {"input_dim": 4, "output_dim": 2, "solved": 475.0, "best": 500},
+    "Acrobot-v1":     {"input_dim": 6, "output_dim": 3, "solved": -100.0, "best": -60},
+    "MountainCar-v0": {"input_dim": 2, "output_dim": 3, "solved": -110.0, "best": -100},
+    "LunarLander-v3": {"input_dim": 8, "output_dim": 4, "solved": 200.0, "best": 300},
+}
+
+
+def task_dims(env_name):
+    """(input_dim, output_dim) for a task: from TASKS if known, else inferred from
+    the Gym env's observation/action spaces (discrete-action envs)."""
+    if env_name in TASKS:
+        return TASKS[env_name]["input_dim"], TASKS[env_name]["output_dim"]
+    import gymnasium as gym
+    env = gym.make(env_name)
+    obs, act = env.observation_space, env.action_space
+    idim = obs.n if hasattr(obs, "n") else int(np.prod(obs.shape))
+    odim = act.n if hasattr(act, "n") else int(np.prod(act.shape))
+    env.close()
+    return int(idim), int(odim)
+
 
 def make_rng(seed):
     return np.random.default_rng(seed)
@@ -76,9 +102,14 @@ def make_propagator(G, input_dim=INPUT_DIM, output_dim=OUTPUT_DIM):
 
 
 def rollout_once(G, env_name="CartPole-v1", seed=0,
-                 input_dim=INPUT_DIM, output_dim=OUTPUT_DIM):
-    """One episode; fresh recurrent state. Returns total reward, or None on failure."""
+                 input_dim=None, output_dim=None):
+    """One episode; fresh recurrent state. Returns total reward, or None on failure.
+    Dims default to the task's (inferred from env_name)."""
     import gymnasium as gym
+    if input_dim is None or output_dim is None:
+        di, do = task_dims(env_name)
+        input_dim = di if input_dim is None else input_dim
+        output_dim = do if output_dim is None else output_dim
     try:
         prop = make_propagator(G, input_dim, output_dim)
         env = gym.make(env_name, render_mode=None)
@@ -97,8 +128,12 @@ def rollout_once(G, env_name="CartPole-v1", seed=0,
 
 
 def evaluate(G, env_name="CartPole-v1", episodes=NUM_ROLLOUTS, base_seed=0,
-             input_dim=INPUT_DIM, output_dim=OUTPUT_DIM):
-    """Mean reward over `episodes` seeds. Returns (mean, list). None-mean if unusable."""
+             input_dim=None, output_dim=None):
+    """Mean reward over `episodes` seeds. Returns (mean, list). Dims default to the task's."""
+    if input_dim is None or output_dim is None:
+        di, do = task_dims(env_name)
+        input_dim = di if input_dim is None else input_dim
+        output_dim = do if output_dim is None else output_dim
     rewards = []
     for s in range(episodes):
         r = rollout_once(G, env_name, base_seed + s, input_dim, output_dim)

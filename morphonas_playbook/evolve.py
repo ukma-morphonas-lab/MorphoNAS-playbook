@@ -46,6 +46,7 @@ CARTPOLE = "CartPole-v1"
 #  PART 4 -> build_fitness(penalize_connections=True)   # add the size penalty
 # ======================================================================
 def build_fitness(penalize_connections=False,
+                  env_name="CartPole-v1",
                   num_rollouts=H.NUM_ROLLOUTS,
                   rollout_seed=0,
                   # penalty knobs (used only when penalize_connections=True)
@@ -64,7 +65,7 @@ def build_fitness(penalize_connections=False,
     toward `min_connection_fitness`. Lower the threshold/floor to squeeze harder
     (see the "strong" preset in __main__).
     """
-    targets = {"env_name": CARTPOLE, "num_rollouts": num_rollouts, "seed": rollout_seed}
+    targets = {"env_name": env_name, "num_rollouts": num_rollouts, "seed": rollout_seed}
     return GymFitnessFunction(
         targets,
         penalize_connections=penalize_connections,
@@ -166,7 +167,7 @@ class GAResult:
         return "\n".join(lines)
 
 
-def _elite_stats(ga, rollout_seed, num_rollouts):
+def _elite_stats(ga, rollout_seed, num_rollouts, env_name, idim, odim):
     """Grow the current best-fitness genome; return (genome, reward, neurons, edges)."""
     scores = np.asarray(ga.current_fitness_scores, dtype=float)
     idx = int(np.argmax(scores))
@@ -175,8 +176,9 @@ def _elite_stats(ga, rollout_seed, num_rollouts):
     G = grid.get_graph()
     neurons = int(grid.neuron_count())
     edges = int(G.number_of_edges())
-    if G.number_of_nodes() >= (H.INPUT_DIM + H.OUTPUT_DIM):
-        mean, _ = H.evaluate(G, episodes=num_rollouts, base_seed=rollout_seed)
+    if G.number_of_nodes() >= (idim + odim):
+        mean, _ = H.evaluate(G, env_name=env_name, episodes=num_rollouts,
+                             base_seed=rollout_seed, input_dim=idim, output_dim=odim)
         reward = float(mean) if mean is not None else 0.0
     else:
         reward = 0.0
@@ -184,6 +186,7 @@ def _elite_stats(ga, rollout_seed, num_rollouts):
 
 
 def run_ga(penalize_connections=False,
+           task="CartPole-v1",
            population=200,
            max_generations=15,
            num_rollouts=H.NUM_ROLLOUTS,
@@ -196,17 +199,26 @@ def run_ga(penalize_connections=False,
            stop_on_solver=True,
            stop_neurons=None,
            min_generations=0,
-           solver_reward_threshold=475.0,
+           solver_reward_threshold=None,
            verbose=True):
-    """Evolve a population of CartPole controllers. Returns a GAResult.
+    """Evolve controllers for `task` (a Gym env). Returns a GAResult.
 
+    task: any env in core.TASKS (CartPole-v1, Acrobot-v1, MountainCar-v0,
+          LunarLander-v3) or any Gym env in the engine's PASSING_SCORES; dims are
+          resolved automatically. `grid` sets the lattice side (e.g. 15 for 15x15).
     penalize_connections: PART 3 -> False, PART 4 -> True (ignored if `scorer` given).
-    stop_on_solver: PART 3 stops at the first 500-step solver; PART 4 sets it False
-                    to keep watching the network shrink under the size penalty.
+    stop_on_solver: PART 3 stops at the first solver; PART 4 sets it False to keep
+                    watching the network shrink under the size penalty.
+    solver_reward_threshold: "solved" bar for telemetry; defaults to the task's.
     max_workers: parallel fitness workers; set 1 if a runtime's multiprocessing balks.
     """
+    env_name = task
+    idim, odim = H.task_dims(env_name)
+    if solver_reward_threshold is None:
+        solver_reward_threshold = H.TASKS.get(env_name, {}).get("solved", 475.0)
     if scorer is None:
         fitness = build_fitness(penalize_connections=penalize_connections,
+                                env_name=env_name,
                                 num_rollouts=num_rollouts, rollout_seed=rollout_seed,
                                 **(penalty_kwargs or {}))
         scorer = GrowScorer(fitness)
@@ -248,7 +260,8 @@ def run_ga(penalize_connections=False,
     ga.fitness_scores = ga._evaluate_solutions(ga.population)
 
     def _record(gen, t_gen):
-        _, reward, neurons, edges = _elite_stats(ga, rollout_seed, num_rollouts)
+        _, reward, neurons, edges = _elite_stats(ga, rollout_seed, num_rollouts,
+                                                 env_name, idim, odim)
         best_fit = float(np.max(np.asarray(ga.current_fitness_scores, dtype=float)))
         res.best_fitness_per_gen.append(best_fit)
         res.elite_reward_per_gen.append(reward)

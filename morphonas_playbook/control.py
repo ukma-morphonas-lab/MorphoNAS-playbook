@@ -103,7 +103,7 @@ def _load_overlay_font(size=16):
     return ImageFont.load_default()
 
 
-def render_rollout(G, out_gif_path, seed=0, max_steps=500, stride=3):
+def render_rollout(G, out_gif_path, env_name="CartPole-v1", seed=0, max_steps=500, stride=3):
     """Drive CartPole with controller G and write a small, looping balancing GIF.
 
     rgb_array frames, PIL resize//2, adaptive palette, frame subsample (`stride`)
@@ -114,8 +114,9 @@ def render_rollout(G, out_gif_path, seed=0, max_steps=500, stride=3):
     import gymnasium as gym
     from PIL import Image, ImageDraw
 
-    prop = H.make_propagator(G)
-    env = gym.make("CartPole-v1", render_mode="rgb_array")
+    idim, odim = H.task_dims(env_name)
+    prop = H.make_propagator(G, input_dim=idim, output_dim=odim)
+    env = gym.make(env_name, render_mode="rgb_array")
     obs, _ = env.reset(seed=seed)
     frames, done, t = [], False, 0   # frames: (true_step_index, rgb_array)
     while not done and t < max_steps:

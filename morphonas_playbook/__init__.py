@@ -22,6 +22,7 @@ if _ENGINE not in _sys.path:
 from .core import (  # noqa: E402  (engine path must be set first, above)
     random_genome, grow, graph_of, n_nodes, n_edges,
     is_connected, is_usable, make_propagator, rollout_once, evaluate,
+    task_dims, TASKS,
     GRID, MORPHOGENS, MAX_GROWTH_STEPS, INPUT_DIM, OUTPUT_DIM, NUM_ROLLOUTS,
 )
 from . import growth, control, evolve, assets  # noqa: E402  (Parts 1, 2, 3&4 + fallbacks)
@@ -30,8 +31,9 @@ __all__ = [
     # core primitives
     "random_genome", "grow", "graph_of", "n_nodes", "n_edges",
     "is_connected", "is_usable", "make_propagator", "rollout_once", "evaluate",
+    "task_dims", "TASKS",
     # part modules
     "growth", "control", "evolve", "assets",
 ]
 
-__version__ = "0.1.3"
+__version__ = "0.1.4"
